@@ -41,6 +41,8 @@ services:
     environment:
       - PORT=4123
       - USE_MULTILINGUAL_MODEL=true
+    volumes:
+      - cache:/home/app/.cache
     deploy:
       resources:
         reservations:
