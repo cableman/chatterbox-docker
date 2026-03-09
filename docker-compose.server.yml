@@ -1,27 +1,46 @@
 networks:
   frontend:
     external: true
+  app:
+    driver: bridge
+    internal: true
 
 services:
-  api:
-    image: travisvn/chatterbox-tts-api:latest
+  auth-proxy:
+    image: nginxinc/nginx-unprivileged:alpine
+    restart: unless-stopped
     networks:
       - frontend
+      - app
     expose:
-      - "4123"
+      - "8080"
     environment:
-      - PORT=4123
-      - USE_MULTILINGUAL_MODEL=true
+      - API_KEY=${API_KEY:?}
+    volumes:
+      - ./nginx/auth-proxy.conf.template:/etc/nginx/templates/default.conf.template:ro
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=frontend"
-      - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=4123"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=8080"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.rule=Host(`${COMPOSE_SERVER_DOMAIN}`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.entrypoints=web"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=Host(`${COMPOSE_SERVER_DOMAIN}`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
+    depends_on:
+      - tts
+
+  tts:
+    image: travisvn/chatterbox-tts-api:latest
+    restart: unless-stopped
+    networks:
+      - app
+    expose:
+      - "4123"
+    environment:
+      - PORT=4123
+      - USE_MULTILINGUAL_MODEL=true
     deploy:
       resources:
         reservations:
