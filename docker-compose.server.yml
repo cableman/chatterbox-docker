@@ -36,13 +36,15 @@ services:
     restart: unless-stopped
     networks:
       - app
+      - frontend
     expose:
       - "4123"
     environment:
       - PORT=4123
       - USE_MULTILINGUAL_MODEL=true
     volumes:
-      - cache:/home/app/.cache
+      - ./data/cache:/home/app/.cache
+      - ./data/voices:/voices
     deploy:
       resources:
         reservations:
