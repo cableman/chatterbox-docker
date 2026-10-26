@@ -7,7 +7,7 @@ networks:
 
 services:
   auth-proxy:
-    image: nginxinc/nginx-unprivileged:alpine
+    image: nginx/nginx-unprivileged:alpine
     restart: unless-stopped
     networks:
       - frontend
